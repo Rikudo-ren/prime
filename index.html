@@ -65,7 +65,6 @@
 
         #factorResult { min-height: 4rem; display: flex; align-items: center; justify-content: center; }
         
-        /* KaTeXのサイズ調整 */
         .answer-container .katex { font-size: 2.2rem !important; }
         .fs-answer-container .katex { font-size: 1em !important; }
         
@@ -98,14 +97,103 @@
             
             <!-- Tabs -->
             <div class="flex flex-wrap justify-center gap-x-6 gap-y-4 border-b border-[#f0f0f0] pb-2" id="tabs-container">
-                <button id="tab-factor" class="mode-tab active text-[#2c2c2c] border-[#2c2c2c] pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all" onclick="setMode('factor')">素因数分解</button>
-                <button id="tab-sqrt" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('sqrt')">平方根の簡略化</button>
+                <button id="tab-addsub" class="mode-tab active text-[#2c2c2c] border-[#2c2c2c] pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all" onclick="setMode('addsub')">足し算・引き算</button>
                 <button id="tab-muldiv" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('muldiv')">掛け算・割り算</button>
+                <button id="tab-sqrt" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('sqrt')">平方根の簡略化</button>
+                <button id="tab-factor" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('factor')">素因数分解</button>
                 <button id="tab-polynomial" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('polynomial')">多次方程式</button>
             </div>
 
+            <!-- 足し算・引き算 Settings -->
+            <div id="addsubSettings" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">演算の種類</label>
+                    <select id="addsubType" class="w-full pb-2 minimal-input appearance-none text-center text-base cursor-pointer">
+                        <option value="add" selected>足し算 (+)</option>
+                        <option value="sub">引き算 (-)</option>
+                        <option value="mix">ランダム (+ / -)</option>
+                    </select>
+                </div>
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">項数 (2〜10)</label>
+                    <select id="addsubTerms" class="w-full pb-2 minimal-input appearance-none text-center text-base cursor-pointer" onchange="renderDigitsInputs('addsub')">
+                        <option value="2" selected>2 項</option>
+                        <option value="3">3 項</option>
+                        <option value="4">4 項</option>
+                        <option value="5">5 項</option>
+                        <option value="6">6 項</option>
+                        <option value="7">7 項</option>
+                        <option value="8">8 項</option>
+                        <option value="9">9 項</option>
+                        <option value="10">10 項</option>
+                    </select>
+                </div>
+
+                <!-- 各項の桁数設定コンテナ -->
+                <div class="md:col-span-2 space-y-3 border-t border-[#f8f8f8] pt-4">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[10px] font-medium text-[#888888] tracking-widest">各項の桁数指定 (1〜10桁)</label>
+                        <div class="flex gap-2 items-center text-xs">
+                            <span class="text-[10px] text-[#aaa]">一括設定:</span>
+                            <button type="button" onclick="setAllDigits('addsub', 1)" class="px-2 py-0.5 text-[10px] border border-[#e0e0e0] hover:border-[#2c2c2c]">全1桁</button>
+                            <button type="button" onclick="setAllDigits('addsub', 2)" class="px-2 py-0.5 text-[10px] border border-[#e0e0e0] hover:border-[#2c2c2c]">全2桁</button>
+                            <button type="button" onclick="setAllDigits('addsub', 3)" class="px-2 py-0.5 text-[10px] border border-[#e0e0e0] hover:border-[#2c2c2c]">全3桁</button>
+                        </div>
+                    </div>
+                    <div id="addsubDigitsContainer" class="flex flex-wrap gap-3 justify-center pt-2"></div>
+                </div>
+
+                <div class="md:col-span-2 text-center pt-2">
+                    <label class="inline-flex items-center cursor-pointer text-xs text-[#888888] tracking-wider">
+                        <input type="checkbox" id="allowNegative" class="sr-only peer">
+                        <div class="relative w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#2c2c2c]"></div>
+                        <span class="ms-3 select-none">引き算で負の数を許容する</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 掛け算・割り算 Settings -->
+            <div id="muldivSettings" class="hidden grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">演算の種類</label>
+                    <select id="muldivType" class="w-full pb-2 minimal-input appearance-none text-center text-base cursor-pointer">
+                        <option value="mul" selected>掛け算 (×)</option>
+                        <option value="div">割り算 (÷)</option>
+                        <option value="mix">ランダム (× / ÷)</option>
+                    </select>
+                </div>
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">項数 (2〜10)</label>
+                    <select id="muldivTerms" class="w-full pb-2 minimal-input appearance-none text-center text-base cursor-pointer" onchange="renderDigitsInputs('muldiv')">
+                        <option value="2" selected>2 項</option>
+                        <option value="3">3 項</option>
+                        <option value="4">4 項</option>
+                        <option value="5">5 項</option>
+                        <option value="6">6 項</option>
+                        <option value="7">7 項</option>
+                        <option value="8">8 項</option>
+                        <option value="9">9 項</option>
+                        <option value="10">10 項</option>
+                    </select>
+                </div>
+
+                <!-- 各項の桁数設定コンテナ -->
+                <div class="md:col-span-2 space-y-3 border-t border-[#f8f8f8] pt-4">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[10px] font-medium text-[#888888] tracking-widest">各項の桁数指定 (1〜10桁)</label>
+                        <div class="flex gap-2 items-center text-xs">
+                            <span class="text-[10px] text-[#aaa]">一括設定:</span>
+                            <button type="button" onclick="setAllDigits('muldiv', 1)" class="px-2 py-0.5 text-[10px] border border-[#e0e0e0] hover:border-[#2c2c2c]">全1桁</button>
+                            <button type="button" onclick="setAllDigits('muldiv', 2)" class="px-2 py-0.5 text-[10px] border border-[#e0e0e0] hover:border-[#2c2c2c]">全2桁</button>
+                            <button type="button" onclick="setAllDigits('muldiv', 3)" class="px-2 py-0.5 text-[10px] border border-[#e0e0e0] hover:border-[#2c2c2c]">全3桁</button>
+                        </div>
+                    </div>
+                    <div id="muldivDigitsContainer" class="flex flex-wrap gap-3 justify-center pt-2"></div>
+                </div>
+            </div>
+
             <!-- 素因数分解 Settings -->
-            <div id="factorSettings" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div id="factorSettings" class="hidden grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="space-y-3">
                     <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">桁数 (1-12)</label>
                     <input type="number" id="digits" min="1" max="12" placeholder="指定しない" class="w-full pb-2 minimal-input text-center text-base">
@@ -115,12 +203,8 @@
                     <input type="number" id="factorCount" min="1" placeholder="指定しない" class="w-full pb-2 minimal-input text-center text-base">
                 </div>
                 <div class="space-y-3">
-                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">素因数の上限</label>
+                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">素因数の上限 (2〜293)</label>
                     <select id="maxPrime" class="w-full pb-2 minimal-input appearance-none text-center text-base cursor-pointer">
-                        <option value="13">13 以下</option>
-                        <option value="31" selected>31 以下</option>
-                        <option value="53">53 以下</option>
-                        <option value="101">101 以下</option>
                     </select>
                 </div>
             </div>
@@ -142,28 +226,6 @@
                         <option value="20" selected>20 以下</option>
                         <option value="50">50 以下</option>
                     </select>
-                </div>
-            </div>
-
-            <!-- 掛け算・割り算 Settings -->
-            <div id="muldivSettings" class="hidden grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-3">
-                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">演算の種類</label>
-                    <select id="muldivType" class="w-full pb-2 minimal-input appearance-none text-center text-base cursor-pointer">
-                        <option value="mul" selected>掛け算 (×)</option>
-                        <option value="div">割り算 (÷)</option>
-                    </select>
-                </div>
-                <div class="flex gap-4 items-end">
-                    <div class="space-y-3 w-1/2">
-                        <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">第1項の桁数</label>
-                        <input type="number" id="muldivDigits1" min="1" max="10" value="2" class="w-full pb-2 minimal-input text-center text-base">
-                    </div>
-                    <div class="pb-2 text-center text-[#888888] text-sm flex-shrink-0">と</div>
-                    <div class="space-y-3 w-1/2">
-                        <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">第2項の桁数</label>
-                        <input type="number" id="muldivDigits2" min="1" max="10" value="1" class="w-full pb-2 minimal-input text-center text-base">
-                    </div>
                 </div>
             </div>
 
@@ -225,8 +287,8 @@
     </div>
 
     <script>
-        const MODES = ['factor', 'sqrt', 'muldiv', 'polynomial'];
-        let currentMode = 'factor'; 
+        const MODES = ['addsub', 'muldiv', 'sqrt', 'factor', 'polynomial'];
+        let currentMode = 'addsub'; 
         
         let currentTargetRaw = "";
         let currentTargetLatex = "";
@@ -257,6 +319,7 @@
             document.getElementById('errorMessage').classList.add('hidden');
         }
 
+        // 素数生成 (エラトステネスの篩)
         function sieve(max) {
             const isPrime = new Array(max + 1).fill(true);
             isPrime[0] = isPrime[1] = false;
@@ -270,6 +333,73 @@
             }
         }
         sieve(1000);
+
+        // 各項の桁数入力フィールドを動的に描画
+        function renderDigitsInputs(prefix) {
+            const termsSelect = document.getElementById(`${prefix}Terms`);
+            const terms = parseInt(termsSelect.value) || 2;
+            const container = document.getElementById(`${prefix}DigitsContainer`);
+            
+            // 既存の入力値を保存（可能な場合）
+            const existingValues = [];
+            for (let i = 0; i < 10; i++) {
+                const input = document.getElementById(`${prefix}Digit_${i}`);
+                if (input) existingValues[i] = parseInt(input.value) || 2;
+                else existingValues[i] = (i === 0) ? 2 : (prefix === 'muldiv' ? 1 : 2);
+            }
+
+            container.innerHTML = '';
+
+            for (let i = 0; i < terms; i++) {
+                const termWrapper = document.createElement('div');
+                termWrapper.className = 'flex flex-col items-center space-y-1 w-16';
+                
+                const label = document.createElement('label');
+                label.className = 'text-[9px] text-[#888888] tracking-tight';
+                label.innerText = `第${i + 1}項`;
+
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = `${prefix}Digit_${i}`;
+                input.min = '1';
+                input.max = '10';
+                input.value = existingValues[i] || (prefix === 'muldiv' && i > 0 ? 1 : 2);
+                input.className = 'w-full pb-1 minimal-input text-center text-sm font-medium';
+
+                termWrapper.appendChild(label);
+                termWrapper.appendChild(input);
+                container.appendChild(termWrapper);
+            }
+        }
+
+        function setAllDigits(prefix, val) {
+            const termsSelect = document.getElementById(`${prefix}Terms`);
+            const terms = parseInt(termsSelect.value) || 2;
+            for (let i = 0; i < terms; i++) {
+                const input = document.getElementById(`${prefix}Digit_${i}`);
+                if (input) input.value = val;
+            }
+        }
+
+        // 初期描画呼び出し
+        renderDigitsInputs('addsub');
+        renderDigitsInputs('muldiv');
+
+        // 素因数分解用の2〜293の素数ドロップダウンオプションの生成
+        function populatePrimeOptions() {
+            const select = document.getElementById('maxPrime');
+            select.innerHTML = '';
+            
+            const targetPrimes = primes.filter(p => p <= 293);
+            targetPrimes.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p;
+                option.textContent = `${p} 以下`;
+                if (p === 31) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+        populatePrimeOptions();
 
         function isSquareFree(n) {
             for (let i = 2; i * i <= n; i++) {
@@ -292,53 +422,175 @@
         async function generateQuestion() {
             document.getElementById('errorMessage').classList.add('hidden');
             
-            if (currentMode === 'factor') generateFactorQuestion();
+            if (currentMode === 'addsub') generateAddSubQuestion();
+            else if (currentMode === 'factor') generateFactorQuestion();
             else if (currentMode === 'sqrt') generateSqrtQuestion();
             else if (currentMode === 'muldiv') generateMulDivQuestion();
             else if (currentMode === 'polynomial') generatePolynomialQuestion();
         }
 
+        // --- 足し算・引き算 ---
+        function generateAddSubQuestion() {
+            const typeSelect = document.getElementById('addsubType').value;
+            const terms = parseInt(document.getElementById('addsubTerms').value) || 2;
+            const allowNegative = document.getElementById('allowNegative').checked;
+
+            let digitsList = [];
+            for (let i = 0; i < terms; i++) {
+                const input = document.getElementById(`addsubDigit_${i}`);
+                digitsList.push(Math.max(1, Math.min(10, parseInt(input ? input.value : 2) || 2)));
+            }
+
+            let numbers = [];
+            let ops = [];
+
+            const min1 = Math.pow(10, digitsList[0] - 1);
+            const max1 = Math.pow(10, digitsList[0]) - 1;
+            numbers.push(getRandomInt(min1, max1));
+            let runningTotal = numbers[0];
+
+            for (let i = 1; i < terms; i++) {
+                let isAdd = true;
+                if (typeSelect === 'sub') {
+                    isAdd = false;
+                } else if (typeSelect === 'add') {
+                    isAdd = true;
+                } else {
+                    isAdd = Math.random() < 0.5;
+                }
+
+                const minN = Math.pow(10, digitsList[i] - 1);
+                const maxN = Math.pow(10, digitsList[i]) - 1;
+                let num = getRandomInt(minN, maxN);
+
+                if (!isAdd && !allowNegative) {
+                    if (runningTotal - num < 0) {
+                        if (typeSelect === 'mix') {
+                            isAdd = true;
+                        } else {
+                            if (runningTotal <= minN) {
+                                isAdd = true; 
+                            } else {
+                                num = getRandomInt(minN, Math.min(maxN, runningTotal));
+                            }
+                        }
+                    }
+                }
+
+                ops.push(isAdd ? '+' : '-');
+                numbers.push(num);
+                runningTotal = isAdd ? (runningTotal + num) : (runningTotal - num);
+            }
+
+            let rawStr = numbers[0].toString();
+            let latexStr = numbers[0].toString();
+            let readStr = numbers[0].toString();
+
+            for (let i = 0; i < ops.length; i++) {
+                const op = ops[i];
+                const num = numbers[i + 1];
+                const opRead = op === '+' ? 'たす' : 'ひく';
+                rawStr += ` ${op} ${num}`;
+                latexStr += ` ${op} ${num}`;
+                readStr += ` ${opRead} ${num}`;
+            }
+
+            currentTargetRaw = rawStr;
+            currentTargetLatex = latexStr;
+            currentAnswerLatex = `${runningTotal}`;
+            currentReadAloudText = `${readStr} は？`;
+
+            renderDisplay();
+        }
+
         // --- 掛け算・割り算 ---
         function generateMulDivQuestion() {
             const type = document.getElementById('muldivType').value;
-            const d1 = parseInt(document.getElementById('muldivDigits1').value) || 2;
-            const d2 = parseInt(document.getElementById('muldivDigits2').value) || 1;
+            const terms = parseInt(document.getElementById('muldivTerms').value) || 2;
+
+            let digitsList = [];
+            for (let i = 0; i < terms; i++) {
+                const input = document.getElementById(`muldivDigit_${i}`);
+                digitsList.push(Math.max(1, Math.min(10, parseInt(input ? input.value : 1) || 1)));
+            }
+
+            let ops = [];
+            for (let i = 1; i < terms; i++) {
+                if (type === 'mul') ops.push('×');
+                else if (type === 'div') ops.push('÷');
+                else ops.push(Math.random() < 0.5 ? '×' : '÷');
+            }
+
+            // 割り算が含まれる場合でも常に整数になり、各項の桁数を厳密に満たす問題を構築
+            let numbers = new Array(terms);
             
+            // 割り算項（÷の直後の数）を先に決定
+            let P_div = 1;
+            for (let i = 1; i < terms; i++) {
+                const d = digitsList[i];
+                const minVal = d === 1 ? 2 : Math.pow(10, d - 1);
+                const maxVal = Math.pow(10, d) - 1;
+
+                if (ops[i - 1] === '÷') {
+                    numbers[i] = getRandomInt(minVal, maxVal);
+                    P_div *= numbers[i];
+                } else {
+                    numbers[i] = getRandomInt(minVal, maxVal);
+                }
+            }
+
+            // 第1項の桁数要件を満たしつつ P_div の倍数にする
+            const d1 = digitsList[0];
             const min1 = Math.pow(10, d1 - 1);
             const max1 = Math.pow(10, d1) - 1;
-            // 1桁の場合は 0, 1 は簡単すぎるため 2 から生成する
-            const min2 = d2 === 1 ? 2 : Math.pow(10, d2 - 1); 
-            const max2 = Math.pow(10, d2) - 1;
 
-            let a, b, ans;
-
-            if (type === 'mul') {
-                a = getRandomInt(min1, max1);
-                b = getRandomInt(min2, max2);
-                ans = a * b;
-                currentTargetRaw = `${a} × ${b}`;
-                currentTargetLatex = `${a} \\times ${b}`;
-                currentAnswerLatex = `${ans}`;
-                currentReadAloudText = `${a} かける ${b} は？`;
-            } else {
-                // 割り算
-                if (d1 < d2) {
-                    showError("割り算の場合、第1項（割られる数）の桁数は第2項（割る数）の桁数以上にしてください。");
-                    return;
-                }
-                b = getRandomInt(min2, max2);
-                let rawA = getRandomInt(min1, max1);
-                a = rawA - (rawA % b); // 割り切れるように調整
-                
-                if (a < min1) a += b; // 調整による桁落ちを防ぐ
-                
-                ans = a / b;
-
-                currentTargetRaw = `${a} ÷ ${b}`;
-                currentTargetLatex = `${a} \\div ${b}`;
-                currentAnswerLatex = `${ans}`;
-                currentReadAloudText = `${a} わる ${b} は？`;
+            if (P_div > max1) {
+                showError(`割り算の除数の積が大きすぎるため、第1項（${d1}桁）の中に収まりません。割り算項の桁数を下げるか、第1項の桁数を増やしてください。`);
+                return;
             }
+
+            let kMin = Math.max(1, Math.ceil(min1 / P_div));
+            let kMax = Math.floor(max1 / P_div);
+
+            if (kMin > kMax) {
+                showError("指定された桁数の組み合わせで整数解の問題を生成できませんでした。桁数を見直してください。");
+                return;
+            }
+
+            let K = getRandomInt(kMin, kMax);
+            numbers[0] = P_div * K;
+
+            // 計算結果の算出
+            let runningVal = numbers[0];
+            for (let i = 1; i < terms; i++) {
+                if (ops[i - 1] === '×') {
+                    runningVal = runningVal * numbers[i];
+                } else {
+                    runningVal = runningVal / numbers[i];
+                }
+            }
+
+            const ans = runningVal;
+
+            let rawStr = numbers[0].toString();
+            let latexStr = numbers[0].toString();
+            let readStr = numbers[0].toString();
+
+            for (let i = 0; i < ops.length; i++) {
+                const op = ops[i];
+                const num = numbers[i + 1];
+                const latexOp = op === '×' ? '\\times' : '\\div';
+                const opRead = op === '×' ? 'かける' : 'わる';
+                rawStr += ` ${op} ${num}`;
+                latexStr += ` ${latexOp} ${num}`;
+                readStr += ` ${opRead} ${num}`;
+            }
+
+            currentTargetRaw = rawStr;
+            currentTargetLatex = latexStr;
+            currentAnswerLatex = `${ans}`;
+            currentReadAloudText = `${readStr} は？`;
+
             renderDisplay();
         }
 
@@ -347,11 +599,9 @@
             const degree = parseInt(document.getElementById('polyDegree').value);
             const maxRoot = parseInt(document.getElementById('maxPolyRoot').value);
             
-            // 根をランダム生成
             let roots = [];
             for (let i = 0; i < degree; i++) {
                 let r = getRandomInt(-maxRoot, maxRoot);
-                // 0ばかりになるのを防ぐため、すでに0がある場合は再生成
                 if (r === 0 && roots.includes(0)) {
                     r = getRandomInt(1, maxRoot);
                     if (Math.random() < 0.5) r = -r;
@@ -359,7 +609,6 @@
                 roots.push(r);
             }
 
-            // (x - r_1)(x - r_2)... = 0 の展開
             let coeffs = [1];
             for (let r of roots) {
                 let nextCoeffs = new Array(coeffs.length + 1).fill(0);
@@ -370,7 +619,6 @@
                 coeffs = nextCoeffs;
             }
 
-            // 数式の構築 (LaTeX & Raw)
             let latexStr = "";
             let rawStr = "";
             let readAloud = "";
@@ -387,7 +635,6 @@
                     signRaw = "";
                 }
                 
-                // 読み上げ用の符号
                 if (i > 0) {
                     readAloud += c > 0 ? " たす " : " ひく ";
                 } else if (c < 0) {
@@ -511,7 +758,6 @@
                 }
             } 
             else {
-                // 両方指定の場合の簡易チェック (厳密な探索はコード量削減のため省略し簡易化)
                 const absoluteMin = Math.pow(filteredPrimes[0], factorInput);
                 const absoluteMax = Math.pow(filteredPrimes[filteredPrimes.length - 1], factorInput);
 
@@ -524,7 +770,6 @@
                     return;
                 }
 
-                // 簡易探索
                 let found = false;
                 for (let attempt = 0; attempt < 3000; attempt++) {
                     let temp = [];
@@ -550,7 +795,6 @@
             currentTargetRaw = currentNumber.toString();
             currentTargetLatex = currentNumber.toString();
             
-            // Factorization Latex
             const counts = {};
             resultFactors.forEach(f => counts[f] = (counts[f] || 0) + 1);
             const sortedPrimes = Object.keys(counts).map(Number).sort((a, b) => a - b);
@@ -568,8 +812,9 @@
             const containerAns = document.getElementById('factorResult');
             const fsAnswer = document.getElementById('fullscreenAnswer');
             
-            // 文字数によるクラス（サイズ）調整
-            if (currentTargetRaw.length > 15) {
+            if (currentTargetRaw.length > 25) {
+                containerTarget.className = "text-2xl md:text-3xl font-light tracking-tight text-[#2c2c2c] break-all pt-2 leading-tight py-4";
+            } else if (currentTargetRaw.length > 15) {
                 containerTarget.className = "text-3xl md:text-4xl font-light tracking-tight text-[#2c2c2c] break-all pt-2 leading-tight py-4";
             } else if (currentTargetRaw.length > 8) {
                 containerTarget.className = "text-4xl md:text-5xl font-light tracking-tight text-[#2c2c2c] break-all pt-2 leading-tight py-4";
@@ -637,13 +882,11 @@
                     fsNumber.innerText = currentTargetRaw;
                 }
                 
-                // 桁数（表示幅）に応じてフォントサイズを動的変更（はみ出し防止）
                 const len = currentTargetRaw.length;
                 let fontSizeVw = Math.min(35, 120 / len);
                 
-                // 多次方程式など数式が長い場合はさらに縮小
                 if (currentMode === 'polynomial' || len > 10) {
-                    fontSizeVw = Math.max(5, Math.min(20, 100 / len));
+                    fontSizeVw = Math.max(4, Math.min(20, 100 / len));
                 }
                 
                 fsNumber.style.fontSize = `${fontSizeVw}vw`;

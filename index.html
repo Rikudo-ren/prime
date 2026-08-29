@@ -63,9 +63,9 @@
             cursor: pointer;
         }
 
-        #factorResult { min-height: 4rem; display: flex; align-items: center; justify-content: center; }
+        #factorResult { min-height: 4rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        .answer-container .katex { font-size: 2.2rem !important; }
+        .answer-container .katex { font-size: 1.6rem !important; }
         .fs-answer-container .katex { font-size: 1em !important; }
         
         ::placeholder {
@@ -78,7 +78,7 @@
     <!-- Fullscreen Overlay -->
     <div id="fullscreenOverlay" class="hidden fixed inset-0 bg-[#fcfcfc] z-50 flex flex-col items-center justify-center animate-in fade-in duration-300">
         <div id="fullscreenNumber" class="font-light tracking-tighter text-[#2c2c2c] leading-none break-all px-8 text-center transition-all duration-500">0</div>
-        <div id="fullscreenAnswer" class="hidden mt-12 text-[#2c2c2c] opacity-0 transition-opacity duration-700 fs-answer-container" style="font-size: 5vw;"></div>
+        <div id="fullscreenAnswer" class="hidden mt-12 text-[#2c2c2c] opacity-0 transition-opacity duration-700 fs-answer-container text-center" style="font-size: 3vw;"></div>
         <div class="absolute bottom-10 text-[#888888] text-xs tracking-widest flex gap-8">
             <span>[Space] 閉じる</span>
             <span>[Enter] 正解を表示</span>
@@ -92,13 +92,65 @@
             <p class="text-[#888888] text-xs tracking-[0.2em]">暗算トレーニング・出題ツール</p>
         </header>
 
+        <!-- GM Scoreboard Card -->
+        <div class="bg-white p-3 md:p-4 shadow-sm border border-[#f0f0f0] space-y-3">
+            <div class="flex items-center justify-between border-b border-[#f0f0f0] pb-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-semibold text-[#2c2c2c] tracking-wider">🏆 スコアボード (GM)</span>
+                    <span id="undoIndicator" class="hidden text-[9px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Undo完了</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="toggleScoreboardBtn" onclick="toggleScoreboardFold()" class="text-[10px] text-[#888888] hover:text-[#2c2c2c] transition-colors">
+                        折りたたむ
+                    </button>
+                </div>
+            </div>
+
+            <div id="scoreboardContent" class="space-y-3 transition-all">
+                <!-- Scoreboard Controls -->
+                <div class="flex flex-wrap items-center justify-between gap-2 bg-[#fafafa] p-2 rounded border border-[#f0f0f0]">
+                    <div class="flex items-center gap-2">
+                        <label class="text-[10px] font-medium text-[#666666] tracking-wider">人数:</label>
+                        <select id="playerCountSelect" onchange="changePlayerCount(this.value)" class="pb-0.5 minimal-input text-center text-xs font-medium cursor-pointer">
+                            <option value="1">1 人</option>
+                            <option value="2" selected>2 人</option>
+                            <option value="3">3 人</option>
+                            <option value="4">4 人</option>
+                            <option value="5">5 人</option>
+                            <option value="6">6 人</option>
+                            <option value="7">7 人</option>
+                            <option value="8">8 人</option>
+                            <option value="9">9 人</option>
+                            <option value="10">10 人</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-1.5">
+                        <button id="undoScoreBtn" onclick="undoScoreAction()" disabled class="px-2 py-1 text-[11px] border border-[#e0e0e0] bg-white text-[#2c2c2c] rounded opacity-40 cursor-not-allowed hover:bg-gray-50 flex items-center gap-1 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                            元に戻す <span class="text-[9px] text-[#aaa] font-mono">(Ctrl+Z)</span>
+                        </button>
+                        <button onclick="resetAllScores()" class="px-2 py-1 text-[11px] border border-[#ffe0e0] bg-white text-[#d32f2f] hover:bg-[#fff5f5] rounded transition-all">
+                            リセット
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Players Cards Grid -->
+                <div id="playersGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
+                    <!-- Dynamic player items generated via JS -->
+                </div>
+            </div>
+        </div>
+
         <!-- Settings Card -->
         <div class="bg-white p-6 md:p-10 shadow-sm border border-[#f0f0f0] space-y-8">
             
-            <!-- Tabs -->
+            <!-- Tabs (簡単順) -->
             <div class="flex flex-wrap justify-center gap-x-6 gap-y-4 border-b border-[#f0f0f0] pb-2" id="tabs-container">
                 <button id="tab-addsub" class="mode-tab active text-[#2c2c2c] border-[#2c2c2c] pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all" onclick="setMode('addsub')">足し算・引き算</button>
                 <button id="tab-muldiv" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('muldiv')">掛け算・割り算</button>
+                <button id="tab-make10" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('make10')">メイク10</button>
                 <button id="tab-sqrt" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('sqrt')">平方根の簡略化</button>
                 <button id="tab-factor" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('factor')">素因数分解</button>
                 <button id="tab-polynomial" class="mode-tab text-[#888888] border-transparent pb-2 text-[11px] md:text-xs font-medium tracking-widest transition-all hover:text-[#2c2c2c]" onclick="setMode('polynomial')">多次方程式</button>
@@ -129,7 +181,6 @@
                     </select>
                 </div>
 
-                <!-- 各項の桁数設定コンテナ -->
                 <div class="md:col-span-2 space-y-3 border-t border-[#f8f8f8] pt-4">
                     <div class="flex items-center justify-between">
                         <label class="block text-[10px] font-medium text-[#888888] tracking-widest">各項の桁数指定 (1〜10桁)</label>
@@ -177,7 +228,6 @@
                     </select>
                 </div>
 
-                <!-- 各項の桁数設定コンテナ -->
                 <div class="md:col-span-2 space-y-3 border-t border-[#f8f8f8] pt-4">
                     <div class="flex items-center justify-between">
                         <label class="block text-[10px] font-medium text-[#888888] tracking-widest">各項の桁数指定 (1〜10桁)</label>
@@ -189,6 +239,34 @@
                         </div>
                     </div>
                     <div id="muldivDigitsContainer" class="flex flex-wrap gap-3 justify-center pt-2"></div>
+                </div>
+            </div>
+
+            <!-- メイク10 Settings -->
+            <div id="make10Settings" class="hidden grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">数字の上限</label>
+                    <select id="make10MaxNum" class="w-full pb-2 minimal-input appearance-none text-center text-base cursor-pointer">
+                        <option value="9" selected>9 以下 (1〜9)</option>
+                        <option value="13">13 以下 (トランプ)</option>
+                        <option value="20">20 以下</option>
+                        <option value="30">30 以下</option>
+                    </select>
+                </div>
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">数字の個数</label>
+                    <select id="make10Count" class="w-full pb-2 minimal-input appearance-none text-center text-base cursor-pointer">
+                        <option value="3">3 個</option>
+                        <option value="4" selected>4 個 (標準)</option>
+                        <option value="5">5 個</option>
+                    </select>
+                </div>
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-medium text-[#888888] tracking-widest text-center">目標の数 (Target)</label>
+                    <input type="number" id="make10Target" value="10" min="1" max="100" class="w-full pb-2 minimal-input text-center text-base">
+                </div>
+                <div class="md:col-span-3">
+                    <p class="text-center text-[10px] text-[#888888]">※ 四則演算(＋, −, ×, ÷)で目標数を作れる組み合わせのみを出題し、重複のない解答例を表示します</p>
                 </div>
             </div>
 
@@ -280,14 +358,14 @@
             </div>
 
             <div class="pt-8">
-                <p class="text-[10px] md:text-xs font-medium text-[#888888] tracking-[0.2em] mb-6 relative after:content-[''] after:block after:w-4 after:h-[1px] after:bg-[#e0e0e0] after:mx-auto after:mt-3">解答</p>
+                <p class="text-[10px] md:text-xs font-medium text-[#888888] tracking-[0.2em] mb-6 relative after:content-[''] after:block after:w-4 after:h-[1px] after:bg-[#e0e0e0] after:mx-auto after:mt-3">解答例</p>
                 <div id="factorResult" class="text-[#2c2c2c] answer-container flex flex-col items-center gap-4"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const MODES = ['addsub', 'muldiv', 'sqrt', 'factor', 'polynomial'];
+        const MODES = ['addsub', 'muldiv', 'make10', 'sqrt', 'factor', 'polynomial'];
         let currentMode = 'addsub'; 
         
         let currentTargetRaw = "";
@@ -295,7 +373,143 @@
         let currentAnswerLatex = "";
         let currentReadAloudText = "";
 
+        // --- スコアボード (GMツール) 関連状態 ---
+        let playerScores = [
+            { name: "Player 1", score: 0 },
+            { name: "Player 2", score: 0 }
+        ];
+        let scoreHistory = []; // Undo用の履歴スタック
+        let isScoreboardFolded = false;
+
+        // 素数配列
         const primes = [];
+
+        // --- スコアボード処理 ---
+        function renderScoreboard() {
+            const grid = document.getElementById('playersGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            playerScores.forEach((p, index) => {
+                const card = document.createElement('div');
+                card.className = "p-2 border border-[#eee] rounded bg-white flex flex-col justify-between space-y-1.5 relative hover:border-[#ccc] transition-all shadow-sm";
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-[#f5f5f5] pb-1 gap-1">
+                        <input type="text" value="${escapeHtml(p.name)}" 
+                               onchange="updatePlayerName(${index}, this.value)"
+                               class="text-[11px] font-semibold text-[#2c2c2c] bg-transparent border-b border-transparent hover:border-[#ccc] focus:border-[#2c2c2c] focus:outline-none w-full truncate" 
+                               title="名前を変更">
+                        <span class="text-[9px] text-[#aaa] shrink-0">P${index + 1}</span>
+                    </div>
+
+                    <div class="text-center py-1">
+                        <div class="text-2xl font-light tracking-tight text-[#2c2c2c] leading-tight">${p.score}</div>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-1 pt-1 border-t border-[#f8f8f8]">
+                        <button onclick="changeScore(${index}, -1)" class="w-7 h-6 border border-[#e0e0e0] text-[#555] rounded hover:bg-gray-100 hover:border-[#999] active:bg-gray-200 transition-all font-bold text-xs">-1</button>
+                        <button onclick="changeScore(${index}, 1)" class="flex-1 h-6 bg-[#2c2c2c] text-white rounded hover:bg-[#4a4a4a] active:bg-[#111] transition-all font-semibold text-xs flex items-center justify-center">
+                            +1
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Undoボタンの有効化判定
+            const undoBtn = document.getElementById('undoScoreBtn');
+            if (undoBtn) {
+                if (scoreHistory.length > 0) {
+                    undoBtn.disabled = false;
+                    undoBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+                } else {
+                    undoBtn.disabled = true;
+                    undoBtn.classList.add('opacity-40', 'cursor-not-allowed');
+                }
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        function pushHistory() {
+            scoreHistory.push(JSON.parse(JSON.stringify(playerScores)));
+            if (scoreHistory.length > 50) scoreHistory.shift();
+        }
+
+        function changeScore(index, delta) {
+            pushHistory();
+            playerScores[index].score += delta;
+            renderScoreboard();
+        }
+
+        function updatePlayerName(index, newName) {
+            if (!newName.trim()) return;
+            pushHistory();
+            playerScores[index].name = newName.trim();
+            renderScoreboard();
+        }
+
+        function changePlayerCount(countStr) {
+            const count = parseInt(countStr) || 2;
+            pushHistory();
+
+            if (count > playerScores.length) {
+                for (let i = playerScores.length; i < count; i++) {
+                    playerScores.push({ name: `Player ${i + 1}`, score: 0 });
+                }
+            } else if (count < playerScores.length) {
+                playerScores = playerScores.slice(0, count);
+            }
+            renderScoreboard();
+        }
+
+        function undoScoreAction() {
+            if (scoreHistory.length === 0) return;
+            const previousState = scoreHistory.pop();
+            playerScores = previousState;
+            
+            const select = document.getElementById('playerCountSelect');
+            if (select) select.value = playerScores.length.toString();
+
+            renderScoreboard();
+            showUndoIndicator();
+        }
+
+        function resetAllScores() {
+            pushHistory();
+            playerScores.forEach(p => p.score = 0);
+            renderScoreboard();
+        }
+
+        function toggleScoreboardFold() {
+            const content = document.getElementById('scoreboardContent');
+            const btn = document.getElementById('toggleScoreboardBtn');
+            isScoreboardFolded = !isScoreboardFolded;
+            
+            if (isScoreboardFolded) {
+                content.classList.add('hidden');
+                btn.innerText = "展開する";
+            } else {
+                content.classList.remove('hidden');
+                btn.innerText = "折りたたむ";
+            }
+        }
+
+        function showUndoIndicator() {
+            const ind = document.getElementById('undoIndicator');
+            if (!ind) return;
+            ind.classList.remove('hidden');
+            setTimeout(() => { ind.classList.add('hidden'); }, 1500);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderScoreboard();
+        });
 
         function setMode(mode) {
             currentMode = mode;
@@ -334,13 +548,11 @@
         }
         sieve(1000);
 
-        // 各項の桁数入力フィールドを動的に描画
         function renderDigitsInputs(prefix) {
             const termsSelect = document.getElementById(`${prefix}Terms`);
             const terms = parseInt(termsSelect.value) || 2;
             const container = document.getElementById(`${prefix}DigitsContainer`);
             
-            // 既存の入力値を保存（可能な場合）
             const existingValues = [];
             for (let i = 0; i < 10; i++) {
                 const input = document.getElementById(`${prefix}Digit_${i}`);
@@ -381,11 +593,9 @@
             }
         }
 
-        // 初期描画呼び出し
         renderDigitsInputs('addsub');
         renderDigitsInputs('muldiv');
 
-        // 素因数分解用の2〜293の素数ドロップダウンオプションの生成
         function populatePrimeOptions() {
             const select = document.getElementById('maxPrime');
             select.innerHTML = '';
@@ -423,9 +633,10 @@
             document.getElementById('errorMessage').classList.add('hidden');
             
             if (currentMode === 'addsub') generateAddSubQuestion();
+            else if (currentMode === 'muldiv') generateMulDivQuestion();
+            else if (currentMode === 'make10') generateMake10Question();
             else if (currentMode === 'factor') generateFactorQuestion();
             else if (currentMode === 'sqrt') generateSqrtQuestion();
-            else if (currentMode === 'muldiv') generateMulDivQuestion();
             else if (currentMode === 'polynomial') generatePolynomialQuestion();
         }
 
@@ -498,7 +709,7 @@
             currentTargetRaw = rawStr;
             currentTargetLatex = latexStr;
             currentAnswerLatex = `${runningTotal}`;
-            currentReadAloudText = `${readStr} は？`;
+            currentReadAloudText = `問題。${readStr}。`;
 
             renderDisplay();
         }
@@ -521,10 +732,7 @@
                 else ops.push(Math.random() < 0.5 ? '×' : '÷');
             }
 
-            // 割り算が含まれる場合でも常に整数になり、各項の桁数を厳密に満たす問題を構築
             let numbers = new Array(terms);
-            
-            // 割り算項（÷の直後の数）を先に決定
             let P_div = 1;
             for (let i = 1; i < terms; i++) {
                 const d = digitsList[i];
@@ -539,13 +747,12 @@
                 }
             }
 
-            // 第1項の桁数要件を満たしつつ P_div の倍数にする
             const d1 = digitsList[0];
             const min1 = Math.pow(10, d1 - 1);
             const max1 = Math.pow(10, d1) - 1;
 
             if (P_div > max1) {
-                showError(`割り算の除数の積が大きすぎるため、第1項（${d1}桁）の中に収まりません。割り算項の桁数を下げるか、第1項の桁数を増やしてください。`);
+                showError(`割り算の除数の積が大きすぎるため、第1項（${d1}桁）の中に収まりません。桁数を見直してください。`);
                 return;
             }
 
@@ -560,7 +767,6 @@
             let K = getRandomInt(kMin, kMax);
             numbers[0] = P_div * K;
 
-            // 計算結果の算出
             let runningVal = numbers[0];
             for (let i = 1; i < terms; i++) {
                 if (ops[i - 1] === '×') {
@@ -589,7 +795,181 @@
             currentTargetRaw = rawStr;
             currentTargetLatex = latexStr;
             currentAnswerLatex = `${ans}`;
-            currentReadAloudText = `${readStr} は？`;
+            currentReadAloudText = `問題。${readStr}。`;
+
+            renderDisplay();
+        }
+
+        // --- AST (抽象構文木) ベースの Make 10 Solver ---
+        function createNumNode(val) {
+            return { type: 'num', val: val };
+        }
+
+        function createOpNode(op, left, right, val) {
+            return { type: 'op', op: op, left: left, right: right, val: val };
+        }
+
+        // 優先順位に基いた綺麗なLaTeX文字列への変換（不要な括弧の自動削減）
+        function astToLatex(node, parentOp = null, isRight = false) {
+            if (node.type === 'num') {
+                return node.val.toString();
+            }
+
+            const prec = { '+': 1, '-': 1, '*': 2, '/': 2 };
+            const myPrec = prec[node.op];
+            const parentPrec = parentOp ? prec[parentOp] : 0;
+
+            let needParen = false;
+
+            if (parentOp) {
+                if (myPrec < parentPrec) {
+                    // 親の優先度が高い場合（例：(1 + 2) * 3）
+                    needParen = true;
+                } else if (myPrec === parentPrec) {
+                    // 優先度が等しく、非可換演算の右側の場合（例：1 - (2 + 3), 1 / (2 * 3)）
+                    if (isRight && (parentOp === '-' || parentOp === '/')) {
+                        needParen = true;
+                    }
+                }
+            }
+
+            const leftStr = astToLatex(node.left, node.op, false);
+            const rightStr = astToLatex(node.right, node.op, true);
+
+            let opSymbol = node.op;
+            if (node.op === '*') opSymbol = '\\times';
+            if (node.op === '/') opSymbol = '\\div';
+
+            const expr = `${leftStr} ${opSymbol} ${rightStr}`;
+            return needParen ? `(${expr})` : expr;
+        }
+
+        // 代数的同値性を判定するキャノニカル（標準形）キーの生成
+        function getCanonicalKey(node) {
+            if (node.type === 'num') {
+                return node.val.toString();
+            }
+
+            // 可換演算 (+ , *) の場合は左右の子のキーを取得して昇順ソート（過度なフラット化を防ぐ）
+            if (node.op === '+' || node.op === '*') {
+                const terms = [];
+                function collectTerms(currNode, op) {
+                    if (currNode.type === 'op' && currNode.op === op) {
+                        collectTerms(currNode.left, op);
+                        collectTerms(currNode.right, op);
+                    } else {
+                        terms.push(getCanonicalKey(currNode));
+                    }
+                }
+                collectTerms(node, node.op);
+                terms.sort();
+                return `(${node.op}:${terms.join(',')})`;
+            }
+
+            // 非可換演算 (- , /) は構造の差異（アプローチの違い）を正しく保持
+            if (node.op === '-' || node.op === '/') {
+                const leftKey = getCanonicalKey(node.left);
+                const rightKey = getCanonicalKey(node.right);
+                return `(${node.op}:${leftKey},${rightKey})`;
+            }
+
+            return '';
+        }
+
+        function solveMake10(nums, target) {
+            const resultsMap = new Map(); // canonKey -> latexExpr
+            const EPS = 1e-7;
+
+            function helper(items) {
+                if (items.length === 1) {
+                    if (Math.abs(items[0].val - target) < EPS) {
+                        const canon = getCanonicalKey(items[0]);
+                        if (!resultsMap.has(canon)) {
+                            const latex = astToLatex(items[0]);
+                            resultsMap.set(canon, latex);
+                        }
+                    }
+                    return;
+                }
+
+                for (let i = 0; i < items.length; i++) {
+                    for (let j = 0; j < items.length; j++) {
+                        if (i === j) continue;
+
+                        const nextItems = items.filter((_, idx) => idx !== i && idx !== j);
+                        const a = items[i];
+                        const b = items[j];
+
+                        // 1. 足し算 (a + b)
+                        helper([...nextItems, createOpNode('+', a, b, a.val + b.val)]);
+
+                        // 2. 引き算 (a - b) : 途中で負の数になる計算 (a < b) は不自然なため除外し、カッコ内が正になる式のみにする
+                        if (a.val >= b.val - EPS) {
+                            helper([...nextItems, createOpNode('-', a, b, a.val - b.val)]);
+                        }
+
+                        // 3. 掛け算 (a * b)
+                        helper([...nextItems, createOpNode('*', a, b, a.val * b.val)]);
+
+                        // 4. 割り算 (a / b)
+                        if (Math.abs(b.val) > EPS) {
+                            helper([...nextItems, createOpNode('/', a, b, a.val / b.val)]);
+                        }
+                    }
+                }
+            }
+
+            const initialItems = nums.map(n => createNumNode(n));
+            helper(initialItems);
+
+            return Array.from(resultsMap.values());
+        }
+
+        function generateMake10Question() {
+            const maxNum = parseInt(document.getElementById('make10MaxNum').value) || 9;
+            const count = parseInt(document.getElementById('make10Count').value) || 4;
+            const target = parseInt(document.getElementById('make10Target').value) || 10;
+
+            let nums = [];
+            let solutions = [];
+            let attempts = 0;
+
+            while (attempts < 2000) {
+                attempts++;
+                nums = [];
+                for (let i = 0; i < count; i++) {
+                    nums.push(getRandomInt(1, maxNum));
+                }
+
+                solutions = solveMake10(nums, target);
+                if (solutions.length > 0) break;
+            }
+
+            if (solutions.length === 0) {
+                showError("設定した条件で作成可能な数字の組み合わせが見つかりませんでした。条件をゆるめてみてください。");
+                return;
+            }
+
+            nums.sort((a, b) => a - b);
+            
+            currentTargetRaw = nums.join(', ');
+            currentTargetLatex = nums.join(',\\ ');
+            
+            const maxDisplaySolutions = Math.min(solutions.length, 5);
+            const displaySols = solutions.slice(0, maxDisplaySolutions);
+            
+            const latexRows = displaySols.map(s => `${s} &= ${target}`);
+            if (latexRows.length > 1) {
+                currentAnswerLatex = `\\begin{aligned} ${latexRows.join(' \\\\[0.6em] ')} \\end{aligned}`;
+            } else {
+                currentAnswerLatex = `${displaySols[0]} = ${target}`;
+            }
+            
+            if (target === 10) {
+                currentReadAloudText = `問題。${nums.join('、')}。`;
+            } else {
+                currentReadAloudText = `問題。${nums.join('、')}を使って${target}を作ってください。`;
+            }
 
             renderDisplay();
         }
@@ -678,7 +1058,7 @@
             const uniqueRoots = [...new Set(roots)].sort((a, b) => a - b);
             currentAnswerLatex = `x = ${uniqueRoots.join(',\\ ')}`;
             
-            currentReadAloudText = `${readAloud} イコール ゼロ。エックスは？`;
+            currentReadAloudText = `問題。${readAloud} イコール ゼロ。`;
             
             renderDisplay();
         }
@@ -702,7 +1082,7 @@
             currentTargetRaw = `√${N}`;
             currentTargetLatex = `\\sqrt{${N}}`;
             currentAnswerLatex = `${a}\\sqrt{${b}}`;
-            currentReadAloudText = `ルート、${N}。`;
+            currentReadAloudText = `問題。ルート${N}。`;
             
             renderDisplay();
         }
@@ -885,7 +1265,7 @@
                 const len = currentTargetRaw.length;
                 let fontSizeVw = Math.min(35, 120 / len);
                 
-                if (currentMode === 'polynomial' || len > 10) {
+                if (currentMode === 'polynomial' || currentMode === 'make10' || len > 10) {
                     fontSizeVw = Math.max(4, Math.min(20, 100 / len));
                 }
                 
@@ -902,7 +1282,14 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
+            const activeTag = document.activeElement.tagName;
+            if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') return;
+
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undoScoreAction();
+                return;
+            }
 
             const overlay = document.getElementById('fullscreenOverlay');
             const isOverlayVisible = !overlay.classList.contains('hidden');
